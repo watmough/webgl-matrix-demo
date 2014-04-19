@@ -48,6 +48,73 @@
   <p>This demo shows the difference in performance between Javascript and gpu performance
     when naively multiplying some matrices.
   <br />
+  <pre>
+// fragment shader that calculates the sum of the passed row and     
+// column (texture coord). 
+// we loop over the row and column and sum the product. 
+// product is then rendered to 32-bit IEEE754 floating point in the 
+// output RGBA canvas. 
+// readPixel is used to read the bytes. 
+#ifdef GL_ES 
+  precision highp float; 
+#endif 
+
+  varying vec2    vTex;         // row, column to calculate 
+  uniform sampler2D usampler;   // left in .r, right in .g 
+  uniform int     uLength;      // r1xc1.r2xc2 => product has r2 (or c1) terms 
+  uniform float   uStepS;       // increment across source texture 
+  uniform float   uStepT;       // increment down source texture 
+  uniform float   uOutRows;     // size of output in rows 
+  uniform float   uOutCols;     // size of output in columns 
+   
+  // sum row r x col c 
+  float sumrowcol(float row, float col) { 
+    float sum = 0.;             // sum 
+    float ss = 0.;              // column on source texture 
+    float tt = 0.;              // row on source texture 
+    float r = row*uStepT;       // moving texture coordinate 
+    float c = col*uStepS;       // moving texture coordinate 
+    for (int pos=0 ; pos<2048 ; ++pos) { 
+      if(pos>=uLength) break; // stop when we multiple a row by a column 
+      float m1 = texture2D(usampler,vec2(ss,r)).r; 
+      float m2 = texture2D(usampler,vec2(c,tt)).g; 
+      sum += (m1*m2); 
+      ss += uStepS; 
+      tt += uStepT; 
+    } 
+    return sum; 
+  } 
+   
+  void main(void) { 
+     
+    // get the implied row and column from .s and .t of passed texel 
+    float col = floor((vTex.s*uOutRows)); 
+    float row = floor((vTex.t*uOutCols));    
+
+    // sum row x col for the passed pixel 
+    float v = sumrowcol(row,col); 
+
+    // Render to IEEE 754 Floating Point 
+    if (v==0.) { 
+      gl_FragColor = vec4(0.,0.,0.,0.); 
+      return; 
+    } 
+    float a = abs(v);                           // encode absolute value + sign 
+    float exp = floor(log2(a));                 // number of powers of 2 
+    float mant = (a * pow(2.,23.-exp));         // multiply to fill 24 bits (implied leading 1) 
+    float mant1 = floor(mant / 256. / 256.);    // first 8 bits of mantissa 
+    float mant2 = mod(floor(mant / 256.),256.); // second 8 bits 
+    float mant3 = mod(mant,256.);               // third 8 bits 
+     
+    highp float sign = 128.-128.*(a/v);     // sign bit is 256 or 0 
+    highp float e = (sign+exp+127.)/510.;   // exponent and sign 
+    highp float m1 = (mant1-(128.*(1.-mod(exp+127.,2.))))/255.; // handle leading bit 
+    highp float m2 = (mant2)/255.;        // middle part 
+    highp float m3 = (mant3+.5)/255.;     // scale to 0 - 255 
+    gl_FragColor = vec4(m3,m2,m1,e);      // output an IEEE754 32-bit floating point number 
+  } 
+  </pre>
+  <br />
   <p>Hit the test button to run. Typically, it'll take about 5 secs to multiply the larger
     matrices in Javascript.
 
