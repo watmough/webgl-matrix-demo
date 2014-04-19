@@ -1,0 +1,58 @@
+<html>
+<head>
+
+<script type="text/javascript" src="./gpu_matrix.js"></script>
+<script type="text/javascript" src="./gpu_matrix.test.js"></script>
+
+<style type=text/css>
+#matrixglcanvas {
+		  width:512px;
+		  height:512px;
+	  }
+</style>
+
+</head>
+<body>
+
+	<h1>Matrix Multiplication Test in WebGL</h1>
+	<p>This demo shows the difference in performance between Javascript and gpu performance
+		when naively multiplying some matrices.
+	<br />
+	<p>Hit the test button to run. Typically, it'll take about 5 secs to multiply the larger
+		matrices in Javascript.
+
+	<br />
+	<br />
+	<input id="buttonTest" type="button" value="Test">
+	<br />
+	<br />
+	<pre id='results'></pre>
+	<br />
+	<br />
+	<canvas id=matrixglcanvas width="128" height="128"></canvas>
+
+<script>
+	document.querySelector('#buttonTest').addEventListener('click', function() {document.querySelector('#results').innerHTML = gpu_matrix_test();}, false);
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
