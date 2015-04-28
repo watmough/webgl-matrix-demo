@@ -1,15 +1,12 @@
-webgl-matrix-demo
-=================
+# webgl-matrix-demo
 
-High performance matrix multiplication in Javascript vs WebGL.
-
-Outline
+## High Performance Matrix Multiplication Utilizing WebGL.
 
 WebGL provides a way to access the high-performance hardware on your graphics card via Javascript in a web browser.
 
 A vertex shader is used to provide vertex information. For this demo, the vertex shader simply passes through the vertexes for the two triangles that are rendered by the Javascript code.
 
-A fragment shader is a bit more interesting. Fragment shaders are called on each pixel being drawn. This allows us to hang a computation off each pixel in the destination image. In this case, it's just a simply matrix multiply term.
+The fragment shader is a bit more interesting. Fragment shaders are called on each pixel being drawn. This allows us to hang a computation off each pixel in the destination image. In this case, it's just a simply matrix multiply term.
 
 To get the source matrices to the fragment shader, we encode them as floating point data in a texture. If float textures are supported, then this is easy, we just make the red channel of the text be the left hand matrix, and the blue channel be the right hand matrix.
 
